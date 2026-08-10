@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>BT Store - Admin</title>
+
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+
+  <body>
+    <header class="admin-header">
+      <div>
+        <h1>BT Store</h1>
+        <p>Admin Panel</p>
+      </div>
+    </header>
+
+    <main class="admin-container">
+      <!-- ============================
+             Product Form
+             ============================ -->
+
+      <section class="form-section">
+        <h2 id="formTitle">Add Product</h2>
+
+        <form id="productForm">
+          <label for="productName"> Product Name </label>
+
+          <input
+            type="text"
+            id="productName"
+            placeholder="Example: FPS Boost Pack"
+            required
+          />
+
+          <label for="productImage"> Product Image </label>
+
+          <input type="file" id="productImage" accept="image/*" />
+
+          <img id="imagePreview" class="image-preview" alt="Image preview" />
+
+          <label for="productFile"> Product File </label>
+
+          <input type="file" id="productFile" />
+
+          <label for="productPrice"> Price (₹) </label>
+
+          <input
+            type="number"
+            id="productPrice"
+            placeholder="499"
+            min="0"
+            step="1"
+            required
+          />
+
+          <label for="productDescription"> Description </label>
+
+          <textarea
+            id="productDescription"
+            placeholder="Describe your product..."
+            required
+          ></textarea>
+
+          <button type="submit" id="submitButton" class="primary-button">
+            + Add Product
+          </button>
+
+          <button type="button" id="cancelEditButton" class="cancel-button">
+            Cancel Edit
+          </button>
+        </form>
+
+        <div id="message"></div>
+      </section>
+
+      <!-- ============================
+             Product List
+             ============================ -->
+
+      <section class="products-section">
+        <div class="section-heading">
+          <h2>Products</h2>
+
+          <button type="button" id="refreshButton" class="refresh-button">
+            ↻ Refresh
+          </button>
+        </div>
+
+        <div id="productList">
+          <p class="loading">Loading products...</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

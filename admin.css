@@ -1,0 +1,343 @@
+/* ============================
+   Global
+   ============================ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #07030b;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+/* ============================
+   Admin Container
+   ============================ */
+
+.admin-container {
+  width: min(1000px, calc(100% - 30px));
+  margin: 40px auto;
+}
+
+/* ============================
+   Header
+   ============================ */
+
+.admin-header {
+  padding: 25px 20px;
+  background: #100817;
+  border-bottom: 1px solid #54206f;
+}
+
+.admin-header h1 {
+  margin: 0;
+  color: #c04cff;
+}
+
+.admin-header p {
+  margin: 5px 0 0;
+  color: #aaa;
+}
+
+/* ============================
+   Form Section
+   ============================ */
+
+.form-section {
+  max-width: 600px;
+  margin: 0 auto 30px;
+  padding: 25px;
+  background: #100817;
+  border: 1px solid #7d1bd1;
+  border-radius: 20px;
+  box-shadow: 0 0 40px rgba(157, 32, 255, 0.2);
+}
+
+.form-section h2 {
+  margin-top: 0;
+  color: #c04cff;
+}
+
+/* ============================
+   Form
+   ============================ */
+
+label {
+  display: block;
+  margin-top: 20px;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 13px;
+  box-sizing: border-box;
+  border: 1px solid #54206f;
+  border-radius: 10px;
+  background: #08050b;
+  color: white;
+  font-size: 15px;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #c04cff;
+  box-shadow: 0 0 10px rgba(192, 76, 255, 0.2);
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* ============================
+   Image Preview
+   ============================ */
+
+.image-preview {
+  display: none;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  margin-top: 12px;
+  border-radius: 12px;
+  border: 1px solid #54206f;
+}
+
+/* ============================
+   Main Button
+   ============================ */
+
+.primary-button {
+  width: 100%;
+  margin-top: 25px;
+  padding: 15px;
+  border: 0;
+  border-radius: 11px;
+  background: linear-gradient(90deg, #7b10dc, #c02cff);
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.primary-button:hover {
+  opacity: 0.9;
+}
+
+.primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================
+   Cancel Edit
+   ============================ */
+
+.cancel-button {
+  display: none;
+  width: 100%;
+  margin-top: 10px;
+  padding: 13px;
+  border: 1px solid #54206f;
+  border-radius: 11px;
+  background: #21152a;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cancel-button:hover {
+  background: #33203e;
+}
+
+/* ============================
+   Messages
+   ============================ */
+
+#message {
+  margin-top: 18px;
+}
+
+.success-message {
+  color: #55ff99;
+}
+
+.error-message {
+  color: #ff5555;
+}
+
+/* ============================
+   Products Section
+   ============================ */
+
+.products-section {
+  padding: 25px;
+  background: #100817;
+  border: 1px solid #7d1bd1;
+  border-radius: 20px;
+  box-shadow: 0 0 40px rgba(157, 32, 255, 0.15);
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  color: #c04cff;
+}
+
+.refresh-button {
+  padding: 10px 16px;
+  border: 1px solid #54206f;
+  border-radius: 9px;
+  background: #21152a;
+  color: white;
+  cursor: pointer;
+}
+
+.refresh-button:hover {
+  background: #33203e;
+}
+
+/* ============================
+   Product Grid
+   ============================ */
+
+#productList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+/* ============================
+   Product Card
+   ============================ */
+
+.admin-product-card {
+  overflow: hidden;
+  background: #08050b;
+  border: 1px solid #54206f;
+  border-radius: 15px;
+  transition: 0.2s;
+}
+
+.admin-product-card:hover {
+  border-color: #c04cff;
+  box-shadow: 0 0 20px rgba(192, 76, 255, 0.15);
+}
+
+.admin-product-image {
+  width: 100%;
+  height: 200px;
+  display: block;
+  object-fit: cover;
+}
+
+.admin-product-info {
+  padding: 17px;
+}
+
+.admin-product-info h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.admin-price {
+  margin: 0 0 10px;
+  color: #c04cff;
+  font-size: 19px;
+  font-weight: bold;
+}
+
+.admin-description {
+  margin-bottom: 16px;
+  color: #aaa;
+  line-height: 1.5;
+}
+
+/* ============================
+   Edit / Delete Buttons
+   ============================ */
+
+.admin-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-button,
+.delete-button {
+  flex: 1;
+  padding: 11px;
+  border-radius: 9px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.edit-button {
+  background: #6f20b5;
+  border: 1px solid #a83cff;
+}
+
+.edit-button:hover {
+  background: #852bd0;
+}
+
+.delete-button {
+  background: #8d1d2c;
+  border: 1px solid #ff455d;
+}
+
+.delete-button:hover {
+  background: #b52235;
+}
+
+/* ============================
+   Loading / Empty
+   ============================ */
+
+.loading,
+.empty-products {
+  color: #aaa;
+  padding: 15px 0;
+}
+
+/* ============================
+   Mobile
+   ============================ */
+
+@media (max-width: 600px) {
+  .admin-container {
+    width: calc(100% - 20px);
+    margin: 20px auto;
+  }
+
+  .form-section,
+  .products-section {
+    padding: 18px;
+    border-radius: 15px;
+  }
+
+  #productList {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading {
+    align-items: center;
+  }
+
+  .admin-product-image {
+    height: 180px;
+  }
+}

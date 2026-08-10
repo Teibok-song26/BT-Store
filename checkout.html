@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Checkout | BT Store</title>
+
+    <link rel="stylesheet" href="checkout.css" />
+  </head>
+
+  <body>
+    <header class="checkout-header">
+      <a href="index.html" class="back-button"> ← BT Store </a>
+
+      <div class="checkout-logo">
+        <img src="images/logo.jpg" alt="BT Store Logo" />
+        <span>BT STORE</span>
+      </div>
+    </header>
+
+    <main class="checkout-page">
+      <div class="checkout-container">
+        <!-- CUSTOMER DETAILS -->
+
+        <section class="customer-section">
+          <p class="label">CHECKOUT</p>
+
+          <h1>Complete Your Order</h1>
+
+          <form id="checkoutForm">
+            <label for="customerName"> Name </label>
+
+            <input
+              type="text"
+              id="customerName"
+              placeholder="Enter your name"
+              required
+            />
+
+            <label for="customerEmail"> Email </label>
+
+            <input
+              type="email"
+              id="customerEmail"
+              placeholder="Enter your email"
+              required
+            />
+
+            <label for="customerPhone"> Phone </label>
+
+            <input
+              type="tel"
+              id="customerPhone"
+              placeholder="Enter your phone number"
+              required
+            />
+
+            <button type="submit" class="continue-button">
+              CONTINUE TO PAYMENT
+            </button>
+          </form>
+        </section>
+
+        <!-- ORDER SUMMARY -->
+
+        <section class="order-section">
+          <h2>Order Summary</h2>
+
+          <div id="orderSummary">
+            <p class="loading">Loading product...</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- PAYMENT -->
+
+      <section id="paymentSection" class="payment-section hidden">
+        <p class="label">PAYMENT</p>
+
+        <h2>Pay with UPI</h2>
+
+        <p class="payment-info">Scan the QR code using your UPI app.</p>
+
+        <div class="qr-box">
+          <div class="qr-placeholder">UPI QR</div>
+        </div>
+
+        <p class="amount">
+          Amount:
+          <strong id="paymentAmount"> ₹0 </strong>
+        </p>
+
+        <p class="payment-status">Waiting for payment verification...</p>
+      </section>
+    </main>
+
+    <footer>
+      <p>© 2026 BT Store. All rights reserved.</p>
+    </footer>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+
+      const productId = urlParams.get("id");
+
+      const orderSummary = document.getElementById("orderSummary");
+
+      const checkoutForm = document.getElementById("checkoutForm");
+
+      const paymentSection = document.getElementById("paymentSection");
+
+      const paymentAmount = document.getElementById("paymentAmount");
+
+      let selectedProduct = null;
+
+      // ============================
+      // Load Product
+      // ============================
+
+      async function loadProduct() {
+        if (!productId) {
+          orderSummary.innerHTML = "<p>Product not specified.</p>";
+
+          return;
+        }
+
+        try {
+          const response = await fetch("http://localhost:3000/api/products");
+
+          const data = await response.json();
+
+          selectedProduct = data.products.find(
+            (product) => product.id == productId,
+          );
+
+          if (!selectedProduct) {
+            orderSummary.innerHTML = "<p>Product not found.</p>";
+
+            return;
+          }
+
+          const price = formatPrice(selectedProduct.price);
+
+          orderSummary.innerHTML = `
+
+                    <div class="summary-card">
+
+                        <img
+                            src="http://localhost:3000${selectedProduct.image}"
+                            alt="${selectedProduct.name}"
+                        >
+
+                        <div>
+
+                            <h3>
+                                ${selectedProduct.name}
+                            </h3>
+
+                            <p>
+                                ${selectedProduct.description}
+                            </p>
+
+                            <strong>
+                                ${price}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+          paymentAmount.textContent = price;
+        } catch (error) {
+          console.error(error);
+
+          orderSummary.innerHTML = "<p>Unable to load product.</p>";
+        }
+      }
+
+      // ============================
+      // Format INR
+      // ============================
+
+      function formatPrice(price) {
+        return new Intl.NumberFormat("en-IN", {
+          style: "currency",
+          currency: "INR",
+          maximumFractionDigits: 0,
+        }).format(price);
+      }
+
+      // ============================
+      // Customer Form
+      // ============================
+      checkoutForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        if (!selectedProduct) {
+          alert("Product is not loaded yet.");
+          return;
+        }
+
+        const customerName = document
+          .getElementById("customerName")
+          .value.trim();
+
+        const customerEmail = document
+          .getElementById("customerEmail")
+          .value.trim();
+
+        const customerPhone = document
+          .getElementById("customerPhone")
+          .value.trim();
+
+        try {
+          const response = await fetch("http://localhost:3000/api/orders", {
+            method: "POST",
+
+            headers: {
+              "Content-Type": "application/json",
+            },
+
+            body: JSON.stringify({
+              productId: selectedProduct.id,
+
+              customerName: customerName,
+
+              customerEmail: customerEmail,
+
+              customerPhone: customerPhone,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (!data.success) {
+            alert(data.message || "Could not create order.");
+
+            return;
+          }
+
+          console.log("Order created:", data.order);
+
+          // Save order ID for the payment step
+
+          sessionStorage.setItem("btstoreOrderId", data.order.id);
+
+          paymentSection.classList.remove("hidden");
+
+          paymentSection.scrollIntoView({
+            behavior: "smooth",
+          });
+        } catch (error) {
+          console.error(error);
+
+          alert("Unable to connect to the server.");
+        }
+      });
+      loadProduct();
+    </script>
+  </body>
+</html>
