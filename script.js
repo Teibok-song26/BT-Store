@@ -2,7 +2,7 @@
 // API
 // ============================
 
-const API_URL = "http://localhost:3000";
+const API_URL = "https://bt-store.onrender.com";
 
 const productsContainer = document.getElementById("productsContainer");
 
