@@ -6,7 +6,12 @@ const fs = require("fs");
 const Database = require("better-sqlite3");
 
 const app = express();
-const PORT = 3000;
+
+// ============================
+// Server Port
+// ============================
+
+const PORT = process.env.PORT || 3000;
 
 // ============================
 // Database
@@ -51,6 +56,7 @@ db.prepare(
     currency TEXT NOT NULL DEFAULT 'INR',
     payment_status TEXT NOT NULL DEFAULT 'PENDING',
     created_at TEXT NOT NULL,
+
     FOREIGN KEY (product_id)
       REFERENCES products(id)
       ON DELETE CASCADE
@@ -74,6 +80,7 @@ fs.mkdirSync(productFolder, { recursive: true });
 // ============================
 
 app.use(cors());
+
 app.use(express.json());
 
 app.use("/uploads", express.static(uploadFolder));
@@ -308,11 +315,10 @@ app.put(
       }
 
       let imagePath = product.image;
+
       let filePath = product.file;
 
-      // ============================
       // New Image
-      // ============================
 
       if (
         req.files &&
@@ -326,9 +332,7 @@ app.put(
         deleteUploadedFile(product.image, imageFolder);
       }
 
-      // ============================
       // New Product File
-      // ============================
 
       if (
         req.files &&
@@ -342,9 +346,7 @@ app.put(
         deleteUploadedFile(product.file, productFolder);
       }
 
-      // ============================
       // Update Database
-      // ============================
 
       db.prepare(
         `
@@ -374,10 +376,10 @@ app.put(
       const updatedProduct = db
         .prepare(
           `
-          SELECT *
-          FROM products
-          WHERE id = ?
-        `,
+            SELECT *
+            FROM products
+            WHERE id = ?
+          `,
         )
         .get(productId);
 
@@ -414,7 +416,6 @@ app.delete("/api/products/:id", (req, res) => {
       });
     }
 
-    // Find product first
     const product = db
       .prepare(
         `
@@ -432,12 +433,9 @@ app.delete("/api/products/:id", (req, res) => {
       });
     }
 
-    // ============================
-    // Delete Database Records
-    // ============================
-
     const deleteProduct = db.transaction(() => {
-      // Delete related orders first
+      // Delete related orders
+
       db.prepare(
         `
             DELETE FROM orders
@@ -446,6 +444,7 @@ app.delete("/api/products/:id", (req, res) => {
       ).run(productId);
 
       // Delete product
+
       db.prepare(
         `
             DELETE FROM products
@@ -456,15 +455,11 @@ app.delete("/api/products/:id", (req, res) => {
 
     deleteProduct();
 
-    // ============================
-    // Delete Image
-    // ============================
+    // Delete image
 
     deleteUploadedFile(product.image, imageFolder);
 
-    // ============================
-    // Delete Product File
-    // ============================
+    // Delete product file
 
     deleteUploadedFile(product.file, productFolder);
 
@@ -610,7 +605,7 @@ app.get("/api/orders/:id", (req, res) => {
 });
 
 // ============================
-// Homepage
+// Homepage / Health Check
 // ============================
 
 app.get("/", (req, res) => {
@@ -626,7 +621,7 @@ app.get("/", (req, res) => {
         content="width=device-width, initial-scale=1.0"
       >
 
-      <title>BT Store</title>
+      <title>BT Store API</title>
 
       <style>
         body {
@@ -640,13 +635,20 @@ app.get("/", (req, res) => {
         }
 
         .box {
-          width: min(520px, calc(100% - 40px));
+          width: min(
+            520px,
+            calc(100% - 40px)
+          );
+
           padding: 30px;
           box-sizing: border-box;
           text-align: center;
+
           background: #100817;
+
           border: 1px solid #7d1bd1;
           border-radius: 20px;
+
           box-shadow:
             0 0 40px
             rgba(157, 32, 255, 0.2);
@@ -670,6 +672,11 @@ app.get("/", (req, res) => {
 
         <p>
           Backend server is running successfully.
+        </p>
+
+        <p>
+          Port:
+          ${PORT}
         </p>
 
         <p>
@@ -701,12 +708,12 @@ app.use((req, res) => {
 // Start Server
 // ============================
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log("");
   console.log("================================");
   console.log("          BT STORE");
   console.log("================================");
   console.log("");
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`BT Store server running on port ${PORT}`);
   console.log("");
 });
