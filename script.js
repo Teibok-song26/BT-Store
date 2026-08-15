@@ -30,7 +30,7 @@ async function loadProducts() {
             </p>
         `;
 
-    const response = await fetch(`${API_URL}/api/products`);
+    const response = await fetch("https://bt-store.onrender.com/api/products");
 
     if (!response.ok) {
       throw new Error(`Server returned ${response.status}`);
@@ -82,7 +82,7 @@ function displayProducts(products) {
 
     const image = document.createElement("img");
 
-    image.src = `${API_URL}${product.image}`;
+    image.src = `https://bt-store.onrender.com${product.image}`;
     image.alt = product.name || "Product";
     image.loading = "lazy";
 
