@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Product | BT Store</title>
@@ -17,6 +18,7 @@
 
       <div class="product-logo">
         <img src="images/logo.jpg" alt="BT Store Logo" />
+
         <span>BT STORE</span>
       </div>
     </header>
@@ -36,12 +38,29 @@
     </footer>
 
     <script>
+      // ============================
+      // Backend URL
+      // ============================
+
+      const API_URL = "https://bt-store.onrender.com";
+
+      // ============================
+      // Product Container
+      // ============================
+
       const productContainer = document.getElementById("productContainer");
 
-      // Get product ID from URL
+      // ============================
+      // Get Product ID
+      // ============================
+
       const urlParams = new URLSearchParams(window.location.search);
 
       const productId = urlParams.get("id");
+
+      // ============================
+      // Load Product
+      // ============================
 
       async function loadProduct() {
         if (!productId) {
@@ -51,15 +70,25 @@
         }
 
         try {
-          const response = await fetch("http://localhost:3000/api/products");
+          console.log("Loading product:", productId);
+
+          const response = await fetch(`${API_URL}/api/products`);
+
+          if (!response.ok) {
+            throw new Error(`Server returned ${response.status}`);
+          }
 
           const data = await response.json();
 
-          if (!data.success) {
-            throw new Error("Could not load products.");
+          console.log("Products response:", data);
+
+          if (!data.success || !Array.isArray(data.products)) {
+            throw new Error("Invalid products response.");
           }
 
-          const product = data.products.find((item) => item.id == productId);
+          const product = data.products.find(
+            (item) => Number(item.id) === Number(productId),
+          );
 
           if (!product) {
             showError("Product not found.");
@@ -69,11 +98,15 @@
 
           displayProduct(product);
         } catch (error) {
-          console.error(error);
+          console.error("PRODUCT LOAD ERROR:", error);
 
           showError("Unable to load this product.");
         }
       }
+
+      // ============================
+      // Display Product
+      // ============================
 
       function displayProduct(product) {
         document.title = `${product.name} | BT Store`;
@@ -84,76 +117,98 @@
           maximumFractionDigits: 0,
         }).format(product.price);
 
+        const imageURL = `${API_URL}${product.image}`;
+
         productContainer.innerHTML = `
+          <div class="product-image-section">
 
-                <div class="product-image-section">
+            <img
+              src="${imageURL}"
+              alt="${escapeHTML(product.name)}"
+              onerror="this.style.display='none'"
+            />
 
-                    <img
-                        src="http://localhost:3000${product.image}"
-                        alt="${product.name}"
-                    >
+          </div>
 
-                </div>
+          <div class="product-details">
 
+            <p class="product-label">
+              BT STORE PRODUCT
+            </p>
 
-                <div class="product-details">
+            <h1>
+              ${escapeHTML(product.name)}
+            </h1>
 
-                    <p class="product-label">
-                        BT STORE PRODUCT
-                    </p>
+            <div class="price">
+              ${price}
+            </div>
 
-                    <h1>
-                        ${product.name}
-                    </h1>
+            <div class="divider"></div>
 
-                    <div class="price">
-                        ${price}
-                    </div>
+            <h2>
+              Description
+            </h2>
 
-                    <div class="divider"></div>
+            <p class="description">
+              ${escapeHTML(product.description)}
+            </p>
 
-                    <h2>
-                        Description
-                    </h2>
+            <button
+              class="buy-button"
+              type="button"
+              onclick="buyProduct(${Number(product.id)})"
+            >
+              BUY NOW
+            </button>
 
-                    <p class="description">
-                        ${product.description}
-                    </p>
-
-
-                    <button
-                        class="buy-button"
-                        onclick="buyProduct(${product.id})"
-                    >
-                        BUY NOW
-                    </button>
-
-                </div>
-
-            `;
+          </div>
+        `;
       }
+
+      // ============================
+      // Buy Product
+      // ============================
 
       function buyProduct(id) {
         window.location.href = `checkout.html?id=${id}`;
       }
 
-      function showError(message) {
+      // ============================
+      // Show Error
+      // ============================
+
+      function showError(text) {
         productContainer.innerHTML = `
+          <div class="error">
 
-                <div class="error">
+            <h2>
+              ${escapeHTML(text)}
+            </h2>
 
-                    <h2>
-                        ${message}
-                    </h2>
+            <a href="index.html">
+              Return to BT Store
+            </a>
 
-                    <a href="index.html">
-                        Return to BT Store
-                    </a>
-
-                </div>
-
-            `;
+          </div>
+        `;
       }
+
+      // ============================
+      // HTML Escape
+      // ============================
+
+      function escapeHTML(value) {
+        const div = document.createElement("div");
+
+        div.textContent = value ?? "";
+
+        return div.innerHTML;
+      }
+
+      // ============================
+      // Start
+      // ============================
 
       loadProduct();
     </script>
