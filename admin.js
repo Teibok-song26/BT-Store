@@ -55,14 +55,10 @@ async function loadProducts() {
       <p class="loading">Loading products...</p>
     `;
 
-    const response = await fetch(
-      `${API_URL}/api/products`
-    );
+    const response = await fetch(`${API_URL}/api/products`);
 
     if (!response.ok) {
-      throw new Error(
-        `Server error: ${response.status}`
-      );
+      throw new Error(`Server error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -70,18 +66,12 @@ async function loadProducts() {
     console.log("Products:", data);
 
     if (!data.success) {
-      throw new Error(
-        data.message || "Failed to load products."
-      );
+      throw new Error(data.message || "Failed to load products.");
     }
 
     displayProducts(data.products);
-
   } catch (error) {
-    console.error(
-      "LOAD PRODUCTS ERROR:",
-      error
-    );
+    console.error("LOAD PRODUCTS ERROR:", error);
 
     productList.innerHTML = `
       <p class="error-message">
@@ -90,8 +80,7 @@ async function loadProducts() {
     `;
 
     showMessage(
-      error.message ||
-        "Could not connect to the server.",
+      error.message || "Could not connect to the server.",
       "error"
     );
   }
@@ -115,11 +104,9 @@ function displayProducts(products) {
   }
 
   products.forEach((product) => {
-    const card =
-      document.createElement("div");
+    const card = document.createElement("div");
 
-    card.className =
-      "admin-product-card";
+    card.className = "admin-product-card";
 
     card.innerHTML = `
       <img
@@ -135,9 +122,7 @@ function displayProducts(products) {
         </h3>
 
         <p class="admin-price">
-          ₹${Number(product.price).toLocaleString(
-            "en-IN"
-          )}
+          ₹${Number(product.price).toLocaleString("en-IN")}
         </p>
 
         <p class="admin-description">
@@ -172,33 +157,19 @@ function displayProducts(products) {
 
   // Edit buttons
 
-  document
-    .querySelectorAll(".edit-button")
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        () => {
-          startEdit(
-            Number(button.dataset.id)
-          );
-        }
-      );
+  document.querySelectorAll(".edit-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      startEdit(Number(button.dataset.id));
     });
+  });
 
   // Delete buttons
 
-  document
-    .querySelectorAll(".delete-button")
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        () => {
-          deleteProduct(
-            Number(button.dataset.id)
-          );
-        }
-      );
+  document.querySelectorAll(".delete-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      deleteProduct(Number(button.dataset.id));
     });
+  });
 }
 
 // ============================
@@ -207,76 +178,53 @@ function displayProducts(products) {
 
 async function startEdit(productId) {
   try {
-    const response = await fetch(
-      `${API_URL}/api/products`
-    );
+    const response = await fetch(`${API_URL}/api/products`);
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
 
     const data = await response.json();
 
-    if (!response.ok || !data.success) {
+    if (!data.success) {
       throw new Error(
-        data.message ||
-          "Failed to load products."
+        data.message || "Failed to load products."
       );
     }
 
-    const product =
-      data.products.find(
-        (item) =>
-          Number(item.id) ===
-          Number(productId)
-      );
+    const product = data.products.find(
+      (item) => Number(item.id) === Number(productId)
+    );
 
     if (!product) {
-      showMessage(
-        "Product not found.",
-        "error"
-      );
-
+      showMessage("Product not found.", "error");
       return;
     }
 
-    editingProductId =
-      Number(product.id);
+    editingProductId = Number(product.id);
 
-    productName.value =
-      product.name;
+    productName.value = product.name;
+    productPrice.value = product.price;
+    productDescription.value = product.description;
 
-    productPrice.value =
-      product.price;
+    if (product.image) {
+      imagePreview.src = `${API_URL}${product.image}`;
+      imagePreview.style.display = "block";
+    }
 
-    productDescription.value =
-      product.description;
-
-    imagePreview.src =
-      `${API_URL}${product.image}`;
-
-    imagePreview.style.display =
-      "block";
-
-    formTitle.textContent =
-      "Edit Product";
-
-    submitButton.textContent =
-      "Save Changes";
-
-    cancelEditButton.style.display =
-      "block";
+    formTitle.textContent = "Edit Product";
+    submitButton.textContent = "Save Changes";
+    cancelEditButton.style.display = "block";
 
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
-
   } catch (error) {
-    console.error(
-      "EDIT ERROR:",
-      error
-    );
+    console.error("EDIT ERROR:", error);
 
     showMessage(
-      error.message ||
-        "Could not load product.",
+      error.message || "Could not load product.",
       "error"
     );
   }
@@ -286,38 +234,29 @@ async function startEdit(productId) {
 // Form Submit
 // ============================
 
-productForm.addEventListener(
-  "submit",
-  async (event) => {
-    event.preventDefault();
+productForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-    if (
-      editingProductId !== null
-    ) {
-      await updateProduct();
-    } else {
-      await addProduct();
-    }
+  if (editingProductId !== null) {
+    await updateProduct();
+  } else {
+    await addProduct();
   }
-);
+});
 
 // ============================
 // Add Product
 // ============================
 
 async function addProduct() {
-  const image =
-    productImage.files[0];
-
-  const file =
-    productFile.files[0];
+  const image = productImage.files[0];
+  const file = productFile.files[0];
 
   if (!image) {
     showMessage(
       "Please choose a product image.",
       "error"
     );
-
     return;
   }
 
@@ -326,87 +265,54 @@ async function addProduct() {
       "Please choose a product file.",
       "error"
     );
-
     return;
   }
 
-  const name =
-    productName.value.trim();
-
-  const price =
-    productPrice.value;
-
-  const description =
-    productDescription.value.trim();
+  const name = productName.value.trim();
+  const price = productPrice.value;
+  const description = productDescription.value.trim();
 
   if (!name || !price || !description) {
     showMessage(
       "Please fill in all product details.",
       "error"
     );
-
     return;
   }
 
-  const formData =
-    new FormData();
+  const formData = new FormData();
 
-  formData.append(
-    "name",
-    name
-  );
-
-  formData.append(
-    "price",
-    price
-  );
-
-  formData.append(
-    "description",
-    description
-  );
-
-  formData.append(
-    "productImage",
-    image
-  );
-
-  formData.append(
-    "productFile",
-    file
-  );
+  formData.append("name", name);
+  formData.append("price", price);
+  formData.append("description", description);
+  formData.append("productImage", image);
+  formData.append("productFile", file);
 
   try {
-    submitButton.disabled =
-      true;
+    submitButton.disabled = true;
+    submitButton.textContent = "Adding...";
 
-    submitButton.textContent =
-      "Adding...";
-
-    const response =
-      await fetch(
-        `${API_URL}/api/products`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-    const data =
-      await response.json();
-
-    console.log(
-      "ADD PRODUCT RESPONSE:",
-      data
+    const response = await fetch(
+      `${API_URL}/api/products`,
+      {
+        method: "POST",
+        body: formData,
+      }
     );
 
-    if (
-      !response.ok ||
-      !data.success
-    ) {
+    if (!response.ok) {
       throw new Error(
-        data.message ||
-          "Failed to add product."
+        `Server error: ${response.status}`
+      );
+    }
+
+    const data = await response.json();
+
+    console.log("ADD PRODUCT RESPONSE:", data);
+
+    if (!data.success) {
+      throw new Error(
+        data.message || "Failed to add product."
       );
     }
 
@@ -418,25 +324,19 @@ async function addProduct() {
     resetForm();
 
     await loadProducts();
-
   } catch (error) {
-    console.error(
-      "ADD PRODUCT ERROR:",
-      error
-    );
+    console.error("ADD PRODUCT ERROR:", error);
 
     showMessage(
-      error.message ||
-        "Could not connect to server.",
+      error.message || "Could not connect to server.",
       "error"
     );
-
   } finally {
-    submitButton.disabled =
-      false;
+    submitButton.disabled = false;
 
-    submitButton.textContent =
-      "+ Add Product";
+    if (editingProductId === null) {
+      submitButton.textContent = "+ Add Product";
+    }
   }
 }
 
@@ -445,14 +345,11 @@ async function addProduct() {
 // ============================
 
 async function updateProduct() {
-  if (
-    editingProductId === null
-  ) {
+  if (editingProductId === null) {
     return;
   }
 
-  const formData =
-    new FormData();
+  const formData = new FormData();
 
   formData.append(
     "name",
@@ -484,31 +381,30 @@ async function updateProduct() {
   }
 
   try {
-    submitButton.disabled =
-      true;
+    submitButton.disabled = true;
+    submitButton.textContent = "Saving...";
 
-    submitButton.textContent =
-      "Saving...";
+    const response = await fetch(
+      `${API_URL}/api/products/${editingProductId}`,
+      {
+        method: "PUT",
+        body: formData,
+      }
+    );
 
-    const response =
-      await fetch(
-        `${API_URL}/api/products/${editingProductId}`,
-        {
-          method: "PUT",
-          body: formData,
-        }
-      );
-
-    const data =
-      await response.json();
-
-    if (
-      !response.ok ||
-      !data.success
-    ) {
+    if (!response.ok) {
       throw new Error(
-        data.message ||
-          "Failed to update product."
+        `Server error: ${response.status}`
+      );
+    }
+
+    const data = await response.json();
+
+    console.log("UPDATE PRODUCT RESPONSE:", data);
+
+    if (!data.success) {
+      throw new Error(
+        data.message || "Failed to update product."
       );
     }
 
@@ -520,25 +416,19 @@ async function updateProduct() {
     resetForm();
 
     await loadProducts();
-
   } catch (error) {
-    console.error(
-      "UPDATE PRODUCT ERROR:",
-      error
-    );
+    console.error("UPDATE PRODUCT ERROR:", error);
 
     showMessage(
-      error.message ||
-        "Could not update product.",
+      error.message || "Could not update product.",
       "error"
     );
-
   } finally {
-    submitButton.disabled =
-      false;
+    submitButton.disabled = false;
 
-    submitButton.textContent =
-      "Save Changes";
+    if (editingProductId !== null) {
+      submitButton.textContent = "Save Changes";
+    }
   }
 }
 
@@ -547,46 +437,41 @@ async function updateProduct() {
 // ============================
 
 async function deleteProduct(productId) {
-  const confirmed =
-    window.confirm(
-      "Are you sure you want to delete this product?"
-    );
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this product?"
+  );
 
   if (!confirmed) {
     return;
   }
 
   try {
-    const response =
-      await fetch(
-        `${API_URL}/api/products/${productId}`,
-        {
-          method: "DELETE",
-        }
-      );
+    console.log("Deleting product:", productId);
 
-    const data =
-      await response.json();
-
-    console.log(
-      "DELETE RESPONSE:",
-      data
+    const response = await fetch(
+      `${API_URL}/api/products/${productId}`,
+      {
+        method: "DELETE",
+      }
     );
 
-    if (
-      !response.ok ||
-      !data.success
-    ) {
+    if (!response.ok) {
       throw new Error(
-        data.message ||
-          "Failed to delete product."
+        `Server error: ${response.status}`
       );
     }
 
-    if (
-      editingProductId ===
-      Number(productId)
-    ) {
+    const data = await response.json();
+
+    console.log("DELETE PRODUCT RESPONSE:", data);
+
+    if (!data.success) {
+      throw new Error(
+        data.message || "Failed to delete product."
+      );
+    }
+
+    if (editingProductId === Number(productId)) {
       resetForm();
     }
 
@@ -596,16 +481,11 @@ async function deleteProduct(productId) {
     );
 
     await loadProducts();
-
   } catch (error) {
-    console.error(
-      "DELETE PRODUCT ERROR:",
-      error
-    );
+    console.error("DELETE PRODUCT ERROR:", error);
 
     showMessage(
-      error.message ||
-        "Failed to delete product.",
+      error.message || "Failed to delete product.",
       "error"
     );
   }
@@ -615,24 +495,18 @@ async function deleteProduct(productId) {
 // Cancel Edit
 // ============================
 
-cancelEditButton.addEventListener(
-  "click",
-  () => {
-    resetForm();
-  }
-);
+cancelEditButton.addEventListener("click", () => {
+  resetForm();
+});
 
 // ============================
-// Refresh
+// Refresh Products
 // ============================
 
 if (refreshButton) {
-  refreshButton.addEventListener(
-    "click",
-    () => {
-      loadProducts();
-    }
-  );
+  refreshButton.addEventListener("click", () => {
+    loadProducts();
+  });
 }
 
 // ============================
@@ -644,45 +518,35 @@ function resetForm() {
 
   productForm.reset();
 
-  formTitle.textContent =
-    "Add Product";
+  formTitle.textContent = "Add Product";
 
-  submitButton.textContent =
-    "+ Add Product";
+  submitButton.textContent = "+ Add Product";
 
-  cancelEditButton.style.display =
-    "none";
+  submitButton.disabled = false;
+
+  cancelEditButton.style.display = "none";
 
   imagePreview.src = "";
-
-  imagePreview.style.display =
-    "none";
+  imagePreview.style.display = "none";
 }
 
 // ============================
 // Messages
 // ============================
 
-function showMessage(
-  text,
-  type
-) {
+function showMessage(text, type) {
   message.innerHTML = "";
 
-  const paragraph =
-    document.createElement("p");
+  const paragraph = document.createElement("p");
 
-  paragraph.textContent =
-    text;
+  paragraph.textContent = text;
 
   paragraph.className =
     type === "success"
       ? "success-message"
       : "error-message";
 
-  message.appendChild(
-    paragraph
-  );
+  message.appendChild(paragraph);
 }
 
 // ============================
@@ -690,11 +554,9 @@ function showMessage(
 // ============================
 
 function escapeHTML(value) {
-  const div =
-    document.createElement("div");
+  const div = document.createElement("div");
 
-  div.textContent =
-    value ?? "";
+  div.textContent = value ?? "";
 
   return div.innerHTML;
 }
