@@ -1,33 +1,23 @@
-const API_URL = "http://localhost:3000";
+const API_URL = "https://bt-store.onrender.com";
 
 // ============================
 // Elements
 // ============================
 
 const productForm = document.getElementById("productForm");
-
 const productName = document.getElementById("productName");
-
 const productImage = document.getElementById("productImage");
-
 const productFile = document.getElementById("productFile");
-
 const productPrice = document.getElementById("productPrice");
-
 const productDescription = document.getElementById("productDescription");
 
 const imagePreview = document.getElementById("imagePreview");
-
 const productList = document.getElementById("productList");
-
 const message = document.getElementById("message");
 
 const formTitle = document.getElementById("formTitle");
-
 const submitButton = document.getElementById("submitButton");
-
 const cancelEditButton = document.getElementById("cancelEditButton");
-
 const refreshButton = document.getElementById("refreshButton");
 
 // ============================
@@ -61,25 +51,49 @@ productImage.addEventListener("change", () => {
 
 async function loadProducts() {
   try {
-    const response = await fetch(`${API_URL}/api/products`);
+    productList.innerHTML = `
+      <p class="loading">Loading products...</p>
+    `;
+
+    const response = await fetch(
+      `${API_URL}/api/products`
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Server error: ${response.status}`
+      );
+    }
 
     const data = await response.json();
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "Failed to load products.");
+    console.log("Products:", data);
+
+    if (!data.success) {
+      throw new Error(
+        data.message || "Failed to load products."
+      );
     }
 
     displayProducts(data.products);
+
   } catch (error) {
-    console.error("Load products error:", error);
+    console.error(
+      "LOAD PRODUCTS ERROR:",
+      error
+    );
 
     productList.innerHTML = `
-            <p class="error-message">
-                Could not load products.
-            </p>
-        `;
+      <p class="error-message">
+        Failed to load products.
+      </p>
+    `;
 
-    showMessage(error.message, "error");
+    showMessage(
+      error.message ||
+        "Could not connect to the server.",
+      "error"
+    );
   }
 }
 
@@ -92,90 +106,99 @@ function displayProducts(products) {
 
   if (!products || products.length === 0) {
     productList.innerHTML = `
-            <p class="empty-products">
-                No products available.
-            </p>
-        `;
+      <p class="empty-products">
+        No products available.
+      </p>
+    `;
 
     return;
   }
 
   products.forEach((product) => {
-    const card = document.createElement("div");
+    const card =
+      document.createElement("div");
 
-    card.className = "admin-product-card";
+    card.className =
+      "admin-product-card";
 
     card.innerHTML = `
+      <img
+        src="${API_URL}${product.image}"
+        class="admin-product-image"
+        alt="${escapeHTML(product.name)}"
+      >
 
-            <img
-                src="${API_URL}${product.image}"
-                class="admin-product-image"
-                alt="${escapeHTML(product.name)}"
-            >
+      <div class="admin-product-info">
 
-            <div class="admin-product-info">
+        <h3>
+          ${escapeHTML(product.name)}
+        </h3>
 
-                <h3>
-                    ${escapeHTML(product.name)}
-                </h3>
+        <p class="admin-price">
+          ₹${Number(product.price).toLocaleString(
+            "en-IN"
+          )}
+        </p>
 
-                <p class="admin-price">
-                    ₹${Number(product.price).toLocaleString("en-IN")}
-                </p>
+        <p class="admin-description">
+          ${escapeHTML(product.description)}
+        </p>
 
-                <p class="admin-description">
-                    ${escapeHTML(product.description)}
-                </p>
+        <div class="admin-actions">
 
-                <div class="admin-actions">
+          <button
+            type="button"
+            class="edit-button"
+            data-id="${product.id}"
+          >
+            ✏️ Edit
+          </button>
 
-                    <button
-                        type="button"
-                        class="edit-button"
-                        data-id="${product.id}"
-                    >
-                        ✏️ Edit
-                    </button>
+          <button
+            type="button"
+            class="delete-button"
+            data-id="${product.id}"
+          >
+            🗑️ Delete
+          </button>
 
-                    <button
-                        type="button"
-                        class="delete-button"
-                        data-id="${product.id}"
-                    >
-                        🗑️ Delete
-                    </button>
+        </div>
 
-                </div>
-
-            </div>
-        `;
+      </div>
+    `;
 
     productList.appendChild(card);
   });
 
-  // ============================
-  // Edit Buttons
-  // ============================
+  // Edit buttons
 
-  document.querySelectorAll(".edit-button").forEach((button) => {
-    button.addEventListener("click", () => {
-      const id = Number(button.dataset.id);
-
-      startEdit(id);
+  document
+    .querySelectorAll(".edit-button")
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => {
+          startEdit(
+            Number(button.dataset.id)
+          );
+        }
+      );
     });
-  });
 
-  // ============================
-  // Delete Buttons
-  // ============================
+  // Delete buttons
 
-  document.querySelectorAll(".delete-button").forEach((button) => {
-    button.addEventListener("click", () => {
-      const id = Number(button.dataset.id);
-
-      deleteProduct(id);
+  document
+    .querySelectorAll(".delete-button")
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => {
+          deleteProduct(
+            Number(button.dataset.id)
+          );
+        }
+      );
     });
-  });
 }
 
 // ============================
@@ -184,50 +207,78 @@ function displayProducts(products) {
 
 async function startEdit(productId) {
   try {
-    const response = await fetch(`${API_URL}/api/products`);
+    const response = await fetch(
+      `${API_URL}/api/products`
+    );
 
     const data = await response.json();
 
     if (!response.ok || !data.success) {
-      throw new Error(data.message || "Failed to load products.");
+      throw new Error(
+        data.message ||
+          "Failed to load products."
+      );
     }
 
-    const product = data.products.find(
-      (item) => Number(item.id) === Number(productId),
-    );
+    const product =
+      data.products.find(
+        (item) =>
+          Number(item.id) ===
+          Number(productId)
+      );
 
     if (!product) {
-      showMessage("Product not found.", "error");
+      showMessage(
+        "Product not found.",
+        "error"
+      );
 
       return;
     }
 
-    editingProductId = Number(product.id);
+    editingProductId =
+      Number(product.id);
 
-    productName.value = product.name;
+    productName.value =
+      product.name;
 
-    productPrice.value = product.price;
+    productPrice.value =
+      product.price;
 
-    productDescription.value = product.description;
+    productDescription.value =
+      product.description;
 
-    imagePreview.src = `${API_URL}${product.image}`;
+    imagePreview.src =
+      `${API_URL}${product.image}`;
 
-    imagePreview.style.display = "block";
+    imagePreview.style.display =
+      "block";
 
-    formTitle.textContent = "Edit Product";
+    formTitle.textContent =
+      "Edit Product";
 
-    submitButton.textContent = "Save Changes";
+    submitButton.textContent =
+      "Save Changes";
 
-    cancelEditButton.style.display = "block";
+    cancelEditButton.style.display =
+      "block";
 
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
-  } catch (error) {
-    console.error("Edit error:", error);
 
-    showMessage(error.message, "error");
+  } catch (error) {
+    console.error(
+      "EDIT ERROR:",
+      error
+    );
+
+    showMessage(
+      error.message ||
+        "Could not load product.",
+      "error"
+    );
   }
 }
 
@@ -235,78 +286,157 @@ async function startEdit(productId) {
 // Form Submit
 // ============================
 
-productForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+productForm.addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
 
-  if (editingProductId !== null) {
-    await updateProduct();
-  } else {
-    await addProduct();
+    if (
+      editingProductId !== null
+    ) {
+      await updateProduct();
+    } else {
+      await addProduct();
+    }
   }
-});
+);
 
 // ============================
 // Add Product
 // ============================
 
 async function addProduct() {
-  const image = productImage.files[0];
+  const image =
+    productImage.files[0];
 
-  const file = productFile.files[0];
+  const file =
+    productFile.files[0];
 
   if (!image) {
-    showMessage("Please choose a product image.", "error");
+    showMessage(
+      "Please choose a product image.",
+      "error"
+    );
 
     return;
   }
 
   if (!file) {
-    showMessage("Please choose a product file.", "error");
+    showMessage(
+      "Please choose a product file.",
+      "error"
+    );
 
     return;
   }
 
-  const formData = new FormData();
+  const name =
+    productName.value.trim();
 
-  formData.append("name", productName.value.trim());
+  const price =
+    productPrice.value;
 
-  formData.append("price", productPrice.value);
+  const description =
+    productDescription.value.trim();
 
-  formData.append("description", productDescription.value.trim());
+  if (!name || !price || !description) {
+    showMessage(
+      "Please fill in all product details.",
+      "error"
+    );
 
-  formData.append("productImage", image);
+    return;
+  }
 
-  formData.append("productFile", file);
+  const formData =
+    new FormData();
+
+  formData.append(
+    "name",
+    name
+  );
+
+  formData.append(
+    "price",
+    price
+  );
+
+  formData.append(
+    "description",
+    description
+  );
+
+  formData.append(
+    "productImage",
+    image
+  );
+
+  formData.append(
+    "productFile",
+    file
+  );
 
   try {
-    submitButton.disabled = true;
+    submitButton.disabled =
+      true;
 
-    submitButton.textContent = "Adding...";
+    submitButton.textContent =
+      "Adding...";
 
-    const response = await fetch(`${API_URL}/api/products`, {
-      method: "POST",
-      body: formData,
-    });
+    const response =
+      await fetch(
+        `${API_URL}/api/products`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "Failed to add product.");
+    console.log(
+      "ADD PRODUCT RESPONSE:",
+      data
+    );
+
+    if (
+      !response.ok ||
+      !data.success
+    ) {
+      throw new Error(
+        data.message ||
+          "Failed to add product."
+      );
     }
 
-    showMessage("Product added successfully!", "success");
+    showMessage(
+      "Product added successfully!",
+      "success"
+    );
 
     resetForm();
 
     await loadProducts();
+
   } catch (error) {
-    console.error("Add product error:", error);
+    console.error(
+      "ADD PRODUCT ERROR:",
+      error
+    );
 
-    showMessage(error.message, "error");
+    showMessage(
+      error.message ||
+        "Could not connect to server.",
+      "error"
+    );
+
   } finally {
-    submitButton.disabled = false;
+    submitButton.disabled =
+      false;
 
-    submitButton.textContent = "+ Add Product";
+    submitButton.textContent =
+      "+ Add Product";
   }
 }
 
@@ -315,58 +445,100 @@ async function addProduct() {
 // ============================
 
 async function updateProduct() {
-  if (editingProductId === null) {
+  if (
+    editingProductId === null
+  ) {
     return;
   }
 
-  const formData = new FormData();
+  const formData =
+    new FormData();
 
-  formData.append("name", productName.value.trim());
+  formData.append(
+    "name",
+    productName.value.trim()
+  );
 
-  formData.append("price", productPrice.value);
+  formData.append(
+    "price",
+    productPrice.value
+  );
 
-  formData.append("description", productDescription.value.trim());
+  formData.append(
+    "description",
+    productDescription.value.trim()
+  );
 
   if (productImage.files[0]) {
-    formData.append("productImage", productImage.files[0]);
+    formData.append(
+      "productImage",
+      productImage.files[0]
+    );
   }
 
   if (productFile.files[0]) {
-    formData.append("productFile", productFile.files[0]);
+    formData.append(
+      "productFile",
+      productFile.files[0]
+    );
   }
 
   try {
-    submitButton.disabled = true;
+    submitButton.disabled =
+      true;
 
-    submitButton.textContent = "Saving...";
+    submitButton.textContent =
+      "Saving...";
 
-    const response = await fetch(
-      `${API_URL}/api/products/${editingProductId}`,
-      {
-        method: "PUT",
-        body: formData,
-      },
-    );
+    const response =
+      await fetch(
+        `${API_URL}/api/products/${editingProductId}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      );
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "Failed to update product.");
+    if (
+      !response.ok ||
+      !data.success
+    ) {
+      throw new Error(
+        data.message ||
+          "Failed to update product."
+      );
     }
 
-    showMessage("Product updated successfully!", "success");
+    showMessage(
+      "Product updated successfully!",
+      "success"
+    );
 
     resetForm();
 
     await loadProducts();
+
   } catch (error) {
-    console.error("Update product error:", error);
+    console.error(
+      "UPDATE PRODUCT ERROR:",
+      error
+    );
 
-    showMessage(error.message, "error");
+    showMessage(
+      error.message ||
+        "Could not update product.",
+      "error"
+    );
+
   } finally {
-    submitButton.disabled = false;
+    submitButton.disabled =
+      false;
 
-    submitButton.textContent = "Save Changes";
+    submitButton.textContent =
+      "Save Changes";
   }
 }
 
@@ -375,44 +547,67 @@ async function updateProduct() {
 // ============================
 
 async function deleteProduct(productId) {
-  const confirmed = window.confirm(
-    "Are you sure you want to delete this product?",
-  );
+  const confirmed =
+    window.confirm(
+      "Are you sure you want to delete this product?"
+    );
 
   if (!confirmed) {
     return;
   }
 
   try {
-    console.log("Deleting product:", productId);
+    const response =
+      await fetch(
+        `${API_URL}/api/products/${productId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-    const response = await fetch(`${API_URL}/api/products/${productId}`, {
-      method: "DELETE",
-    });
+    const data =
+      await response.json();
 
-    console.log("Delete HTTP status:", response.status);
+    console.log(
+      "DELETE RESPONSE:",
+      data
+    );
 
-    const data = await response.json();
-
-    console.log("Delete response:", data);
-
-    if (!response.ok || !data.success) {
+    if (
+      !response.ok ||
+      !data.success
+    ) {
       throw new Error(
-        data.message || `Delete failed with status ${response.status}`,
+        data.message ||
+          "Failed to delete product."
       );
     }
 
-    if (editingProductId === Number(productId)) {
+    if (
+      editingProductId ===
+      Number(productId)
+    ) {
       resetForm();
     }
 
-    showMessage("Product deleted successfully!", "success");
+    showMessage(
+      "Product deleted successfully!",
+      "success"
+    );
 
     await loadProducts();
-  } catch (error) {
-    console.error("Delete product error:", error);
 
-    showMessage(error.message, "error");
+  } catch (error) {
+    console.error(
+      "DELETE PRODUCT ERROR:",
+      error
+    );
+
+    showMessage(
+      error.message ||
+        "Failed to delete product.",
+      "error"
+    );
   }
 }
 
@@ -420,18 +615,24 @@ async function deleteProduct(productId) {
 // Cancel Edit
 // ============================
 
-cancelEditButton.addEventListener("click", () => {
-  resetForm();
-});
+cancelEditButton.addEventListener(
+  "click",
+  () => {
+    resetForm();
+  }
+);
 
 // ============================
-// Refresh Products
+// Refresh
 // ============================
 
 if (refreshButton) {
-  refreshButton.addEventListener("click", () => {
-    loadProducts();
-  });
+  refreshButton.addEventListener(
+    "click",
+    () => {
+      loadProducts();
+    }
+  );
 }
 
 // ============================
@@ -443,42 +644,57 @@ function resetForm() {
 
   productForm.reset();
 
-  formTitle.textContent = "Add Product";
+  formTitle.textContent =
+    "Add Product";
 
-  submitButton.textContent = "+ Add Product";
+  submitButton.textContent =
+    "+ Add Product";
 
-  cancelEditButton.style.display = "none";
+  cancelEditButton.style.display =
+    "none";
 
   imagePreview.src = "";
 
-  imagePreview.style.display = "none";
+  imagePreview.style.display =
+    "none";
 }
 
 // ============================
 // Messages
 // ============================
 
-function showMessage(text, type) {
+function showMessage(
+  text,
+  type
+) {
   message.innerHTML = "";
 
-  const paragraph = document.createElement("p");
+  const paragraph =
+    document.createElement("p");
 
-  paragraph.textContent = text;
+  paragraph.textContent =
+    text;
 
   paragraph.className =
-    type === "success" ? "success-message" : "error-message";
+    type === "success"
+      ? "success-message"
+      : "error-message";
 
-  message.appendChild(paragraph);
+  message.appendChild(
+    paragraph
+  );
 }
 
 // ============================
-// HTML Escaping
+// HTML Escape
 // ============================
 
 function escapeHTML(value) {
-  const div = document.createElement("div");
+  const div =
+    document.createElement("div");
 
-  div.textContent = value ?? "";
+  div.textContent =
+    value ?? "";
 
   return div.innerHTML;
 }
