@@ -1,12 +1,19 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const Database = require("better-sqlite3");
+const Razorpay = require("razorpay");
 
 const app = express();
 
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 // ============================
 // Server Port
 // ============================
@@ -475,6 +482,69 @@ app.delete("/api/products/:id", (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete product.",
+    });
+  }
+});
+
+// ============================
+// Create Razorpay Payment Order
+// ============================
+
+app.post("/api/payment/create-order", async (req, res) => {
+  try {
+    const { productId } = req.body;
+
+    if (!productId) {
+      return res.status(400).json({
+        success: false,
+        message: "Product ID is required.",
+      });
+    }
+
+    const product = db
+      .prepare(
+        `
+        SELECT *
+        FROM products
+        WHERE id = ?
+        `,
+      )
+      .get(Number(productId));
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found.",
+      });
+    }
+
+    const options = {
+      amount: Number(product.price) * 100,
+      currency: "INR",
+      receipt: `product_${product.id}_${Date.now()}`,
+    };
+
+    const razorpayOrder = await razorpay.orders.create(options);
+
+    console.log("Razorpay order created:", razorpayOrder.id);
+
+    res.json({
+      success: true,
+      message: "Payment order created successfully.",
+      order: razorpayOrder,
+      product: {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        currency: product.currency,
+      },
+    });
+  } catch (error) {
+    console.error("CREATE RAZORPAY ORDER ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to create payment order.",
     });
   }
 });
