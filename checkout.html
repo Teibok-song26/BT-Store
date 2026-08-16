@@ -1,23 +1,35 @@
 <!doctype html>
+
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    ```
     <title>Checkout | BT Store</title>
 
     <link rel="stylesheet" href="checkout.css" />
+
+    <!-- Razorpay Checkout -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    ```
   </head>
 
   <body>
+    <!-- HEADER -->
+
+    ```
     <header class="checkout-header">
       <a href="index.html" class="back-button"> ← BT Store </a>
 
       <div class="checkout-logo">
         <img src="images/logo.jpg" alt="BT Store Logo" />
+
         <span>BT STORE</span>
       </div>
     </header>
+
+    <!-- MAIN -->
 
     <main class="checkout-page">
       <div class="checkout-container">
@@ -35,6 +47,7 @@
               type="text"
               id="customerName"
               placeholder="Enter your name"
+              autocomplete="name"
               required
             />
 
@@ -44,6 +57,7 @@
               type="email"
               id="customerEmail"
               placeholder="Enter your email"
+              autocomplete="email"
               required
             />
 
@@ -53,10 +67,11 @@
               type="tel"
               id="customerPhone"
               placeholder="Enter your phone number"
+              autocomplete="tel"
               required
             />
 
-            <button type="submit" class="continue-button">
+            <button type="submit" id="payButton" class="continue-button">
               CONTINUE TO PAYMENT
             </button>
           </form>
@@ -78,28 +93,39 @@
       <section id="paymentSection" class="payment-section hidden">
         <p class="label">PAYMENT</p>
 
-        <h2>Pay with UPI</h2>
+        <h2>Complete Your Payment</h2>
 
-        <p class="payment-info">Scan the QR code using your UPI app.</p>
-
-        <div class="qr-box">
-          <div class="qr-placeholder">UPI QR</div>
-        </div>
+        <p class="payment-info">
+          Click the button below to open Razorpay Checkout.
+        </p>
 
         <p class="amount">
           Amount:
+
           <strong id="paymentAmount"> ₹0 </strong>
         </p>
 
-        <p class="payment-status">Waiting for payment verification...</p>
+        <p id="paymentStatus" class="payment-status">Ready for payment.</p>
       </section>
     </main>
+
+    <!-- FOOTER -->
 
     <footer>
       <p>© 2026 BT Store. All rights reserved.</p>
     </footer>
 
     <script>
+      // ==================================================
+      // API
+      // ==================================================
+
+      const API_URL = "https://bt-store.onrender.com";
+
+      // ==================================================
+      // ELEMENTS
+      // ==================================================
+
       const urlParams = new URLSearchParams(window.location.search);
 
       const productId = urlParams.get("id");
@@ -112,95 +138,144 @@
 
       const paymentAmount = document.getElementById("paymentAmount");
 
+      const paymentStatus = document.getElementById("paymentStatus");
+
+      const payButton = document.getElementById("payButton");
+
+      // ==================================================
+      // SELECTED PRODUCT
+      // ==================================================
+
       let selectedProduct = null;
 
-      // ============================
-      // Load Product
-      // ============================
-
-      async function loadProduct() {
-        if (!productId) {
-          orderSummary.innerHTML = "<p>Product not specified.</p>";
-
-          return;
-        }
-
-        try {
-          const response = await fetch("http://localhost:3000/api/products");
-
-          const data = await response.json();
-
-          selectedProduct = data.products.find(
-            (product) => product.id == productId,
-          );
-
-          if (!selectedProduct) {
-            orderSummary.innerHTML = "<p>Product not found.</p>";
-
-            return;
-          }
-
-          const price = formatPrice(selectedProduct.price);
-
-          orderSummary.innerHTML = `
-
-                    <div class="summary-card">
-
-                        <img
-                            src="http://localhost:3000${selectedProduct.image}"
-                            alt="${selectedProduct.name}"
-                        >
-
-                        <div>
-
-                            <h3>
-                                ${selectedProduct.name}
-                            </h3>
-
-                            <p>
-                                ${selectedProduct.description}
-                            </p>
-
-                            <strong>
-                                ${price}
-                            </strong>
-
-                        </div>
-
-                    </div>
-
-                `;
-
-          paymentAmount.textContent = price;
-        } catch (error) {
-          console.error(error);
-
-          orderSummary.innerHTML = "<p>Unable to load product.</p>";
-        }
-      }
-
-      // ============================
-      // Format INR
-      // ============================
+      // ==================================================
+      // FORMAT PRICE
+      // ==================================================
 
       function formatPrice(price) {
         return new Intl.NumberFormat("en-IN", {
           style: "currency",
           currency: "INR",
           maximumFractionDigits: 0,
-        }).format(price);
+        }).format(Number(price));
       }
 
-      // ============================
-      // Customer Form
-      // ============================
+      // ==================================================
+      // LOAD PRODUCT
+      // ==================================================
+
+      async function loadProduct() {
+        if (!productId) {
+          orderSummary.innerHTML = `
+          <p>
+            Product was not specified.
+          </p>
+        `;
+
+          return;
+        }
+
+        try {
+          console.log("Loading product:", productId);
+
+          const response = await fetch(`${API_URL}/api/products`);
+
+          if (!response.ok) {
+            throw new Error(`Server returned ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          console.log("Products response:", data);
+
+          if (!data.success || !Array.isArray(data.products)) {
+            throw new Error("Invalid products response.");
+          }
+
+          selectedProduct = data.products.find(
+            (product) => Number(product.id) === Number(productId),
+          );
+
+          if (!selectedProduct) {
+            orderSummary.innerHTML = `
+            <p>
+              Product not found.
+            </p>
+          `;
+
+            return;
+          }
+
+          displayProduct(selectedProduct);
+        } catch (error) {
+          console.error("LOAD PRODUCT ERROR:", error);
+
+          orderSummary.innerHTML = `
+          <p>
+            Unable to load product.
+          </p>
+        `;
+        }
+      }
+
+      // ==================================================
+      // DISPLAY PRODUCT
+      // ==================================================
+
+      function displayProduct(product) {
+        const price = formatPrice(product.price);
+
+        const imageURL = `${API_URL}${product.image}`;
+
+        orderSummary.innerHTML = `
+
+        <div class="summary-card">
+
+          <img
+            src="${imageURL}"
+            alt="${escapeHTML(product.name)}"
+            onerror="this.style.display='none'"
+          />
+
+          <div>
+
+            <h3>
+              ${escapeHTML(product.name)}
+            </h3>
+
+            <p>
+              ${escapeHTML(product.description || "")}
+            </p>
+
+            <strong>
+              ${price}
+            </strong>
+
+          </div>
+
+        </div>
+
+      `;
+
+        paymentAmount.textContent = price;
+      }
+
+      // ==================================================
+      // CUSTOMER FORM
+      // ==================================================
+
       checkoutForm.addEventListener("submit", async function (event) {
         event.preventDefault();
 
         if (!selectedProduct) {
           alert("Product is not loaded yet.");
+
           return;
         }
+
+        // ----------------------------------------------
+        // CUSTOMER DETAILS
+        // ----------------------------------------------
 
         const customerName = document
           .getElementById("customerName")
@@ -214,8 +289,22 @@
           .getElementById("customerPhone")
           .value.trim();
 
+        if (!customerName || !customerEmail || !customerPhone) {
+          alert("Please enter all customer details.");
+
+          return;
+        }
+
         try {
-          const response = await fetch("http://localhost:3000/api/orders", {
+          payButton.disabled = true;
+
+          payButton.textContent = "Creating Payment...";
+
+          // ==================================================
+          // CREATE RAZORPAY ORDER
+          // ==================================================
+
+          const response = await fetch(`${API_URL}/api/payment/create-order`, {
             method: "POST",
 
             headers: {
@@ -224,41 +313,237 @@
 
             body: JSON.stringify({
               productId: selectedProduct.id,
-
-              customerName: customerName,
-
-              customerEmail: customerEmail,
-
-              customerPhone: customerPhone,
             }),
           });
 
           const data = await response.json();
 
-          if (!data.success) {
-            alert(data.message || "Could not create order.");
+          console.log("Razorpay order response:", data);
 
-            return;
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || "Could not create payment order.");
           }
 
-          console.log("Order created:", data.order);
-
-          // Save order ID for the payment step
-
-          sessionStorage.setItem("btstoreOrderId", data.order.id);
+          // ==================================================
+          // SHOW PAYMENT SECTION
+          // ==================================================
 
           paymentSection.classList.remove("hidden");
+
+          paymentStatus.textContent = "Opening Razorpay Checkout...";
+
+          paymentStatus.style.color = "";
 
           paymentSection.scrollIntoView({
             behavior: "smooth",
           });
-        } catch (error) {
-          console.error(error);
 
-          alert("Unable to connect to the server.");
+          // ==================================================
+          // RAZORPAY OPTIONS
+          // ==================================================
+
+          const options = {
+            /*
+             * IMPORTANT:
+             *
+             * Put your PUBLIC Razorpay TEST
+             * Key ID here.
+             *
+             * Example:
+             *
+             * key: "rzp_test_xxxxxxxxxxxxx"
+             *
+             * NEVER put RAZORPAY_KEY_SECRET here.
+             */
+
+            key: "rzp_test_TQJZyuIs7BTqVx",
+
+            amount: data.order.amount,
+
+            currency: data.order.currency,
+
+            name: "BT Store",
+
+            description: selectedProduct.name,
+
+            order_id: data.order.id,
+
+            prefill: {
+              name: customerName,
+
+              email: customerEmail,
+
+              contact: customerPhone,
+            },
+
+            theme: {
+              color: "#7d1bd1",
+            },
+
+            // ==================================================
+            // PAYMENT SUCCESS
+            // ==================================================
+
+            handler: async function (razorpayResponse) {
+              console.log("Razorpay payment response:", razorpayResponse);
+
+              paymentStatus.textContent =
+                "Payment successful! Saving your order...";
+
+              try {
+                /*
+                 * Save the order in your database.
+                 */
+
+                const orderResponse = await fetch(`${API_URL}/api/orders`, {
+                  method: "POST",
+
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+
+                  body: JSON.stringify({
+                    productId: selectedProduct.id,
+
+                    customerName: customerName,
+
+                    customerEmail: customerEmail,
+
+                    customerPhone: customerPhone,
+                  }),
+                });
+
+                const orderData = await orderResponse.json();
+
+                console.log("Database order response:", orderData);
+
+                if (!orderResponse.ok || !orderData.success) {
+                  throw new Error(orderData.message || "Could not save order.");
+                }
+
+                // ------------------------------------------
+                // Save IDs locally
+                // ------------------------------------------
+
+                sessionStorage.setItem("btstoreOrderId", orderData.order.id);
+
+                sessionStorage.setItem(
+                  "razorpayPaymentId",
+                  razorpayResponse.razorpay_payment_id,
+                );
+
+                sessionStorage.setItem(
+                  "razorpayOrderId",
+                  razorpayResponse.razorpay_order_id,
+                );
+
+                sessionStorage.setItem(
+                  "razorpaySignature",
+                  razorpayResponse.razorpay_signature,
+                );
+
+                // ------------------------------------------
+                // SUCCESS
+                // ------------------------------------------
+
+                paymentStatus.textContent =
+                  "Payment successful! Your order has been received.";
+
+                paymentStatus.style.color = "green";
+
+                payButton.disabled = false;
+
+                payButton.textContent = "PAYMENT COMPLETED";
+              } catch (error) {
+                console.error("SAVE ORDER ERROR:", error);
+
+                paymentStatus.textContent =
+                  "Payment succeeded, but the order could not be saved. Please contact support.";
+
+                paymentStatus.style.color = "red";
+
+                payButton.disabled = false;
+
+                payButton.textContent = "CONTINUE TO PAYMENT";
+              }
+            },
+
+            // ==================================================
+            // PAYMENT MODAL CLOSED
+            // ==================================================
+
+            modal: {
+              ondismiss: function () {
+                paymentStatus.textContent = "Payment window closed.";
+
+                paymentStatus.style.color = "";
+
+                payButton.disabled = false;
+
+                payButton.textContent = "CONTINUE TO PAYMENT";
+              },
+            },
+          };
+
+          // ==================================================
+          // OPEN RAZORPAY
+          // ==================================================
+
+          if (typeof Razorpay === "undefined") {
+            throw new Error("Razorpay Checkout failed to load.");
+          }
+
+          const razorpay = new Razorpay(options);
+
+          // ==================================================
+          // PAYMENT FAILED
+          // ==================================================
+
+          razorpay.on("payment.failed", function (response) {
+            console.error("RAZORPAY PAYMENT FAILED:", response);
+
+            paymentStatus.textContent =
+              response.error && response.error.description
+                ? `Payment failed: ${response.error.description}`
+                : "Payment failed. Please try again.";
+
+            paymentStatus.style.color = "red";
+
+            payButton.disabled = false;
+
+            payButton.textContent = "CONTINUE TO PAYMENT";
+          });
+
+          razorpay.open();
+        } catch (error) {
+          console.error("PAYMENT ERROR:", error);
+
+          alert(error.message || "Unable to start payment.");
+
+          payButton.disabled = false;
+
+          payButton.textContent = "CONTINUE TO PAYMENT";
         }
       });
+
+      // ==================================================
+      // HTML ESCAPE
+      // ==================================================
+
+      function escapeHTML(value) {
+        const div = document.createElement("div");
+
+        div.textContent = value ?? "";
+
+        return div.innerHTML;
+      }
+
+      // ==================================================
+      // START
+      // ==================================================
+
       loadProduct();
     </script>
+    ```
   </body>
 </html>
