@@ -79,14 +79,7 @@ async function loadProducts() {
       </p>
     `;
 
-<<<<<<< HEAD
-    showMessage(
-      error.message || "Could not connect to the server.",
-      "error"
-    );
-=======
     showMessage(error.message || "Could not connect to the server.", "error");
->>>>>>> 5352bb9 (Update payment and frontend)
   }
 }
 
@@ -191,13 +184,11 @@ async function startEdit(productId) {
     const data = await response.json();
 
     if (!data.success) {
-      throw new Error(
-        data.message || "Failed to load products."
-      );
+      throw new Error(data.message || "Failed to load products.");
     }
 
     const product = data.products.find(
-      (item) => Number(item.id) === Number(productId)
+      (item) => Number(item.id) === Number(productId),
     );
 
     if (!product) {
@@ -227,14 +218,7 @@ async function startEdit(productId) {
   } catch (error) {
     console.error("EDIT ERROR:", error);
 
-<<<<<<< HEAD
-    showMessage(
-      error.message || "Could not load product.",
-      "error"
-    );
-=======
     showMessage(error.message || "Could not load product.", "error");
->>>>>>> 5352bb9 (Update payment and frontend)
   }
 }
 
@@ -261,58 +245,29 @@ async function addProduct() {
   const file = productFile.files[0];
 
   if (!image) {
-    showMessage(
-      "Please choose a product image.",
-      "error"
-    );
+    showMessage("Please choose a product image.", "error");
     return;
   }
 
   if (!file) {
-    showMessage(
-      "Please choose a product file.",
-      "error"
-    );
+    showMessage("Please choose a product file.", "error");
     return;
   }
 
   const name = productName.value.trim();
   const price = productPrice.value;
-  const description = productDescription.value.trim();
-
-  if (!name || !price || !description) {
-    showMessage(
-      "Please fill in all product details.",
-      "error"
-    );
-    return;
-  }
-
-  const name = productName.value.trim();
-
-  const price = productPrice.value;
-
   const description = productDescription.value.trim();
 
   if (!name || !price || !description) {
     showMessage("Please fill in all product details.", "error");
-
     return;
   }
 
   const formData = new FormData();
 
   formData.append("name", name);
-<<<<<<< HEAD
   formData.append("price", price);
   formData.append("description", description);
-=======
-
-  formData.append("price", price);
-
-  formData.append("description", description);
-
->>>>>>> 5352bb9 (Update payment and frontend)
   formData.append("productImage", image);
   formData.append("productFile", file);
 
@@ -320,39 +275,20 @@ async function addProduct() {
     submitButton.disabled = true;
     submitButton.textContent = "Adding...";
 
-    const response = await fetch(
-      `${API_URL}/api/products`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Server error: ${response.status}`
-      );
-    }
+    const response = await fetch(`${API_URL}/api/products`, {
+      method: "POST",
+      body: formData,
+    });
 
     const data = await response.json();
 
     console.log("ADD PRODUCT RESPONSE:", data);
 
-<<<<<<< HEAD
-    if (!data.success) {
-      throw new Error(
-        data.message || "Failed to add product."
-      );
-=======
     if (!response.ok || !data.success) {
       throw new Error(data.message || "Failed to add product.");
->>>>>>> 5352bb9 (Update payment and frontend)
     }
 
-    showMessage(
-      "Product added successfully!",
-      "success"
-    );
+    showMessage("Product added successfully!", "success");
 
     resetForm();
 
@@ -360,14 +296,7 @@ async function addProduct() {
   } catch (error) {
     console.error("ADD PRODUCT ERROR:", error);
 
-<<<<<<< HEAD
-    showMessage(
-      error.message || "Could not connect to server.",
-      "error"
-    );
-=======
     showMessage(error.message || "Could not connect to server.", "error");
->>>>>>> 5352bb9 (Update payment and frontend)
   } finally {
     submitButton.disabled = false;
 
@@ -388,33 +317,18 @@ async function updateProduct() {
 
   const formData = new FormData();
 
-  formData.append(
-    "name",
-    productName.value.trim()
-  );
+  formData.append("name", productName.value.trim());
 
-  formData.append(
-    "price",
-    productPrice.value
-  );
+  formData.append("price", productPrice.value);
 
-  formData.append(
-    "description",
-    productDescription.value.trim()
-  );
+  formData.append("description", productDescription.value.trim());
 
   if (productImage.files[0]) {
-    formData.append(
-      "productImage",
-      productImage.files[0]
-    );
+    formData.append("productImage", productImage.files[0]);
   }
 
   if (productFile.files[0]) {
-    formData.append(
-      "productFile",
-      productFile.files[0]
-    );
+    formData.append("productFile", productFile.files[0]);
   }
 
   try {
@@ -426,29 +340,18 @@ async function updateProduct() {
       {
         method: "PUT",
         body: formData,
-      }
+      },
     );
-
-    if (!response.ok) {
-      throw new Error(
-        `Server error: ${response.status}`
-      );
-    }
 
     const data = await response.json();
 
     console.log("UPDATE PRODUCT RESPONSE:", data);
 
-    if (!data.success) {
-      throw new Error(
-        data.message || "Failed to update product."
-      );
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Failed to update product.");
     }
 
-    showMessage(
-      "Product updated successfully!",
-      "success"
-    );
+    showMessage("Product updated successfully!", "success");
 
     resetForm();
 
@@ -456,14 +359,7 @@ async function updateProduct() {
   } catch (error) {
     console.error("UPDATE PRODUCT ERROR:", error);
 
-<<<<<<< HEAD
-    showMessage(
-      error.message || "Could not update product.",
-      "error"
-    );
-=======
     showMessage(error.message || "Could not update product.", "error");
->>>>>>> 5352bb9 (Update payment and frontend)
   } finally {
     submitButton.disabled = false;
 
@@ -479,7 +375,7 @@ async function updateProduct() {
 
 async function deleteProduct(productId) {
   const confirmed = window.confirm(
-    "Are you sure you want to delete this product?"
+    "Are you sure you want to delete this product?",
   );
 
   if (!confirmed) {
@@ -487,65 +383,31 @@ async function deleteProduct(productId) {
   }
 
   try {
-<<<<<<< HEAD
     console.log("Deleting product:", productId);
 
-    const response = await fetch(
-      `${API_URL}/api/products/${productId}`,
-      {
-        method: "DELETE",
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Server error: ${response.status}`
-      );
-    }
-
-    const data = await response.json();
-
-    console.log("DELETE PRODUCT RESPONSE:", data);
-
-    if (!data.success) {
-      throw new Error(
-        data.message || "Failed to delete product."
-      );
-=======
     const response = await fetch(`${API_URL}/api/products/${productId}`, {
       method: "DELETE",
     });
 
     const data = await response.json();
 
-    console.log("DELETE RESPONSE:", data);
+    console.log("DELETE PRODUCT RESPONSE:", data);
 
     if (!response.ok || !data.success) {
       throw new Error(data.message || "Failed to delete product.");
->>>>>>> 5352bb9 (Update payment and frontend)
     }
 
     if (editingProductId === Number(productId)) {
       resetForm();
     }
 
-    showMessage(
-      "Product deleted successfully!",
-      "success"
-    );
+    showMessage("Product deleted successfully!", "success");
 
     await loadProducts();
   } catch (error) {
     console.error("DELETE PRODUCT ERROR:", error);
 
-<<<<<<< HEAD
-    showMessage(
-      error.message || "Failed to delete product.",
-      "error"
-    );
-=======
     showMessage(error.message || "Failed to delete product.", "error");
->>>>>>> 5352bb9 (Update payment and frontend)
   }
 }
 
@@ -600,9 +462,7 @@ function showMessage(text, type) {
   paragraph.textContent = text;
 
   paragraph.className =
-    type === "success"
-      ? "success-message"
-      : "error-message";
+    type === "success" ? "success-message" : "error-message";
 
   message.appendChild(paragraph);
 }
