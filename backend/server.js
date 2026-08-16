@@ -254,7 +254,7 @@ app.get("/api/products", (req, res) => {
         `
         SELECT *
         FROM products
-        ORDER BY id D
+        ORDER BY id DESC
       `,
       )
       .all();
