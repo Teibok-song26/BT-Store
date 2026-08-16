@@ -79,10 +79,14 @@ async function loadProducts() {
       </p>
     `;
 
+<<<<<<< HEAD
     showMessage(
       error.message || "Could not connect to the server.",
       "error"
     );
+=======
+    showMessage(error.message || "Could not connect to the server.", "error");
+>>>>>>> 5352bb9 (Update payment and frontend)
   }
 }
 
@@ -223,10 +227,14 @@ async function startEdit(productId) {
   } catch (error) {
     console.error("EDIT ERROR:", error);
 
+<<<<<<< HEAD
     showMessage(
       error.message || "Could not load product.",
       "error"
     );
+=======
+    showMessage(error.message || "Could not load product.", "error");
+>>>>>>> 5352bb9 (Update payment and frontend)
   }
 }
 
@@ -280,11 +288,31 @@ async function addProduct() {
     return;
   }
 
+  const name = productName.value.trim();
+
+  const price = productPrice.value;
+
+  const description = productDescription.value.trim();
+
+  if (!name || !price || !description) {
+    showMessage("Please fill in all product details.", "error");
+
+    return;
+  }
+
   const formData = new FormData();
 
   formData.append("name", name);
+<<<<<<< HEAD
   formData.append("price", price);
   formData.append("description", description);
+=======
+
+  formData.append("price", price);
+
+  formData.append("description", description);
+
+>>>>>>> 5352bb9 (Update payment and frontend)
   formData.append("productImage", image);
   formData.append("productFile", file);
 
@@ -310,10 +338,15 @@ async function addProduct() {
 
     console.log("ADD PRODUCT RESPONSE:", data);
 
+<<<<<<< HEAD
     if (!data.success) {
       throw new Error(
         data.message || "Failed to add product."
       );
+=======
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Failed to add product.");
+>>>>>>> 5352bb9 (Update payment and frontend)
     }
 
     showMessage(
@@ -327,10 +360,14 @@ async function addProduct() {
   } catch (error) {
     console.error("ADD PRODUCT ERROR:", error);
 
+<<<<<<< HEAD
     showMessage(
       error.message || "Could not connect to server.",
       "error"
     );
+=======
+    showMessage(error.message || "Could not connect to server.", "error");
+>>>>>>> 5352bb9 (Update payment and frontend)
   } finally {
     submitButton.disabled = false;
 
@@ -419,10 +456,14 @@ async function updateProduct() {
   } catch (error) {
     console.error("UPDATE PRODUCT ERROR:", error);
 
+<<<<<<< HEAD
     showMessage(
       error.message || "Could not update product.",
       "error"
     );
+=======
+    showMessage(error.message || "Could not update product.", "error");
+>>>>>>> 5352bb9 (Update payment and frontend)
   } finally {
     submitButton.disabled = false;
 
@@ -446,6 +487,7 @@ async function deleteProduct(productId) {
   }
 
   try {
+<<<<<<< HEAD
     console.log("Deleting product:", productId);
 
     const response = await fetch(
@@ -469,6 +511,18 @@ async function deleteProduct(productId) {
       throw new Error(
         data.message || "Failed to delete product."
       );
+=======
+    const response = await fetch(`${API_URL}/api/products/${productId}`, {
+      method: "DELETE",
+    });
+
+    const data = await response.json();
+
+    console.log("DELETE RESPONSE:", data);
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Failed to delete product.");
+>>>>>>> 5352bb9 (Update payment and frontend)
     }
 
     if (editingProductId === Number(productId)) {
@@ -484,10 +538,14 @@ async function deleteProduct(productId) {
   } catch (error) {
     console.error("DELETE PRODUCT ERROR:", error);
 
+<<<<<<< HEAD
     showMessage(
       error.message || "Failed to delete product.",
       "error"
     );
+=======
+    showMessage(error.message || "Failed to delete product.", "error");
+>>>>>>> 5352bb9 (Update payment and frontend)
   }
 }
 
@@ -500,7 +558,7 @@ cancelEditButton.addEventListener("click", () => {
 });
 
 // ============================
-// Refresh Products
+// Refresh
 // ============================
 
 if (refreshButton) {
